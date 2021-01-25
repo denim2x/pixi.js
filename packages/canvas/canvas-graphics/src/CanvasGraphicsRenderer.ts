@@ -21,6 +21,25 @@ import type { Polygon, Rectangle, Circle, Ellipse, RoundedRectangle } from '@pix
  * https://github.com/libgdx/libgdx/blob/1.0.0/gdx/src/com/badlogic/gdx/graphics/glutils/ShapeRenderer.java
  */
 
+const ALIGNMENT = {
+    MIN: 0,
+    MAX: 1,
+    MID: NaN,
+};
+
+ALIGNMENT.MID = ALIGNMENT.MIN + ((ALIGNMENT.MAX - ALIGNMENT.MIN) / 2);
+
+const FILL = {
+    alpha: 1,
+    paint: '#000',
+};
+
+const STROKE = {
+    use: [FILL],
+    cap: 'square',
+    join: 'miter',
+};
+
 /**
  * Renderer dedicated to drawing and batching graphics objects.
  *
@@ -164,7 +183,7 @@ export class CanvasGraphicsRenderer
 
             if (strokeVisible)
             {
-                useOffscreen = fillVisible;
+                useOffscreen = fillVisible || alignment !== ALIGNMENT.MID;
             }
 
             let context = renderer.context as CanvasRenderingContext2D;
@@ -207,7 +226,50 @@ export class CanvasGraphicsRenderer
                             width: lineWidth,
                         };
 
-                        stroke(style);
+                        if (alignment === ALIGNMENT.MID)
+                        {
+                            stroke(style);
+                        }
+                        else
+                        {
+                            const miterLimit = (lineStyle.miterLimit || 1) * 5;
+                            const interior = {
+                                miterLimit,
+                                width: lineWidth * alignment * 2,
+                            };
+                            const exterior = {
+                                miterLimit,
+                                width: lineWidth * (ALIGNMENT.MAX - alignment) * 2,
+                            };
+
+                            fill(FILL);
+
+                            if (alignment < ALIGNMENT.MID)
+                            {
+                                stroke([interior, STROKE]);
+
+                                stroke({
+                                    use: [style],
+                                    blendMode: blendModes[BLEND_MODES.SRC_IN],
+                                    width: exterior.width,
+                                });
+                            }
+                            else
+                            {
+                                stroke({
+                                    use: [interior, STROKE],
+                                    blendMode: blendModes[BLEND_MODES.SRC_OUT],
+                                });
+
+                                stroke([exterior, STROKE]);
+
+                                stroke({
+                                    use: [style],
+                                    blendMode: blendModes[BLEND_MODES.SRC_IN],
+                                    width: interior.width,
+                                });
+                            }
+                        }
                     }
                     if (fillVisible)
                     {
