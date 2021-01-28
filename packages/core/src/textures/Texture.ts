@@ -453,7 +453,7 @@ export class Texture extends EventEmitter
         options?: IBaseTextureOptions): Promise<Texture>
     {
         const baseTexture = new BaseTexture(source, Object.assign({
-            scaleMode: settings.SCALE_MODE,
+            scaleMode: options.scaleMode ?? settings.SCALE_MODE,
             resolution: getResolutionOfUrl(imageUrl),
         }, options));
 
