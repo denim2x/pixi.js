@@ -5,6 +5,7 @@ import { BitmapFont } from './BitmapFont';
 import type { ILoaderResource, Loader } from '@pixi/loaders';
 import type { Dict } from '@pixi/utils';
 import type { Texture } from '@pixi/core';
+import type { IBitmapFontMetadata } from './BitmapFontData';
 
 /**
  * {@link PIXI.Loader Loader} middleware for loading
@@ -60,10 +61,15 @@ export class BitmapFontLoader
             }
         };
 
+        const resourceMetadata = resource.metadata as IBitmapFontMetadata;
+        const imageMetadata = resourceMetadata?.imageMetadata;
+        const textureMetadata = resourceMetadata?.font?.texture;
+
         for (let i = 0; i < data.page.length; ++i)
         {
             const pageFile = data.page[i].file;
             const url = baseUrl + pageFile;
+            const metadata = { ...imageMetadata, ...textureMetadata, pageFile };
             let exists = false;
 
             // incase the image is loaded outside
@@ -74,7 +80,8 @@ export class BitmapFontLoader
 
                 if (bitmapResource.url === url)
                 {
-                    bitmapResource.metadata.pageFile = pageFile;
+                    // bitmapResource.metadata.pageFile = pageFile;
+                    bitmapResource.metadata = metadata;
                     if (bitmapResource.texture)
                     {
                         completed(bitmapResource);
@@ -96,10 +103,7 @@ export class BitmapFontLoader
                 const options = {
                     crossOrigin: resource.crossOrigin,
                     loadType: LoaderResource.LOAD_TYPE.IMAGE,
-                    metadata: Object.assign(
-                        { pageFile },
-                        resource.metadata.imageMetadata
-                    ),
+                    metadata,
                     parentResource: resource,
                 };
 
