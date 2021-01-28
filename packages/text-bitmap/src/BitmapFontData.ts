@@ -1,4 +1,5 @@
 /* eslint-disable max-len */
+import type { IResourceMetadata } from '@pixi/loaders';
 
 /**
  * Normalized parsed data from .fnt files.
@@ -78,6 +79,12 @@ export interface IBitmapFontDataKerning {
     first: number;
     second: number;
     amount: number;
+}
+
+export interface IBitmapFontMetadata extends IResourceMetadata {
+    font?: {
+        texture?: any;
+    }
 }
 
 /**
